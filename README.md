@@ -1,4 +1,4 @@
-# Offer Navigator
+# Kwalifier
 
 Build a chat-based web app called Kwalifier, a bank customer assistant that explains which credit card offers a customer is eligible for. IMPORTANT: eligibility must be computed by separate deterministic logic (a plain JavaScript function comparing customer values to offer thresholds), never by the AI model itself. The AI model only explains a verdict that has already been computed by that function.
 
