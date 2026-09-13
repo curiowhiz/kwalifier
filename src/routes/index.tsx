@@ -11,6 +11,7 @@ import {
   ThumbsUp,
 } from "lucide-react";
 import { toast } from "sonner";
+import { AnimatePresence, animate, motion } from "motion/react";
 
 import mark from "@/assets/kwalifier-mark.png";
 import { Toaster } from "@/components/ui/sonner";
@@ -72,8 +73,19 @@ const STARTERS = [
   "Am I close to qualifying for anything better?",
 ];
 
-
-import { motion } from "motion/react";
+/** Counts up from 0 to `target` like an adding machine, once per target value. */
+function useCountUp(target: number, duration = 1) {
+  const [display, setDisplay] = useState(0);
+  useEffect(() => {
+    const controls = animate(0, target, {
+      duration,
+      ease: "easeOut",
+      onUpdate: (v) => setDisplay(Math.round(v)),
+    });
+    return controls.stop;
+  }, [target, duration]);
+  return display;
+}
 
 function RadialGauge({ have, need, max, label }: { have: number, need: number, max: number, label: string }) {
   const percentage = Math.min(100, Math.max(0, (have / max) * 100));
@@ -81,6 +93,8 @@ function RadialGauge({ have, need, max, label }: { have: number, need: number, m
   const radius = 16;
   const circumference = 2 * Math.PI * radius;
   const strokeDashoffset = circumference - (percentage / 100) * circumference;
+  const displayHave = useCountUp(have);
+  const displayNeed = useCountUp(need);
 
   return (
     <div className="flex items-center gap-3">
@@ -108,8 +122,8 @@ function RadialGauge({ have, need, max, label }: { have: number, need: number, m
       <div className="flex flex-col">
         <span className="text-[11px] text-muted-foreground">{label}</span>
         <span className="font-mono text-sm tabular-nums text-card-foreground">
-          {have}
-          <span className="text-muted-foreground"> / {need} required</span>
+          {displayHave}
+          <span className="text-muted-foreground"> / {displayNeed} required</span>
         </span>
       </div>
     </div>
@@ -119,37 +133,52 @@ function RadialGauge({ have, need, max, label }: { have: number, need: number, m
 /** A brass ink-stamp graphic - the bank's mark of approval, not a status icon. */
 function ApprovalSeal() {
   return (
-    <motion.div
-      initial={{ opacity: 0, scale: 1.8, rotate: 6 }}
-      animate={{ opacity: 0.92, scale: 1, rotate: -7 }}
-      transition={{ type: "spring", stiffness: 260, damping: 20 }}
-      className="pointer-events-none absolute right-3 top-3 text-eligible mix-blend-multiply"
-      aria-hidden="true"
-    >
-      <svg width="52" height="52" viewBox="0 0 52 52" fill="none">
-        <circle cx="26" cy="26" r="23" stroke="currentColor" strokeWidth="1.5" strokeDasharray="2.2 2.6" />
-        <circle cx="26" cy="26" r="18" stroke="currentColor" strokeWidth="1.25" />
-        <path
-          d="M18 26.5l5.5 5.5L34.5 20"
-          stroke="currentColor"
-          strokeWidth="2.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </svg>
+    <div className="pointer-events-none absolute right-3 top-3" aria-hidden="true">
+      {/* Ink-press ripple: one-time pulse as the stamp lands */}
+      <motion.span
+        initial={{ scale: 0.4, opacity: 0.45 }}
+        animate={{ scale: 2.1, opacity: 0 }}
+        transition={{ duration: 0.6, delay: 0.18, ease: "easeOut" }}
+        className="absolute inset-0 rounded-full bg-eligible"
+        style={{ filter: "blur(6px)" }}
+      />
+      <motion.div
+        initial={{ opacity: 0, scale: 1.8, rotate: 6 }}
+        animate={{ opacity: 0.92, scale: 1, rotate: -7 }}
+        transition={{ type: "spring", stiffness: 260, damping: 20 }}
+        className="relative text-eligible mix-blend-multiply"
+      >
+        <svg width="52" height="52" viewBox="0 0 52 52" fill="none">
+          <circle cx="26" cy="26" r="23" stroke="currentColor" strokeWidth="1.5" strokeDasharray="2.2 2.6" />
+          <circle cx="26" cy="26" r="18" stroke="currentColor" strokeWidth="1.25" />
+          <path
+            d="M18 26.5l5.5 5.5L34.5 20"
+            stroke="currentColor"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      </motion.div>
       <span className="sr-only">Approved</span>
-    </motion.div>
+    </div>
   );
 }
 
-function VerdictCard({ verdict }: { verdict: Verdict }) {
+function VerdictCard({ verdict, index }: { verdict: Verdict; index: number }) {
   const [open, setOpen] = useState(false);
 
   const isEligible = verdict.status === "eligible";
   const isNearMiss = verdict.status === "near_miss";
 
   return (
-    <div className="on-parchment relative flex flex-col overflow-hidden border border-border bg-card p-4 transition-all">
+    <motion.div
+      initial={{ opacity: 0, scaleY: 0.2, y: -6 }}
+      animate={{ opacity: 1, scaleY: 1, y: 0 }}
+      transition={{ duration: 0.45, delay: index * 0.07, ease: [0.16, 1, 0.3, 1] }}
+      style={{ transformOrigin: "top" }}
+      className="on-parchment relative flex flex-col overflow-hidden border border-border bg-card p-4"
+    >
       {isEligible && <ApprovalSeal />}
 
       <div className="flex items-start justify-between gap-2">
@@ -182,22 +211,33 @@ function VerdictCard({ verdict }: { verdict: Verdict }) {
             <ChevronDown className={cn("size-3 transition-transform", open && "rotate-180")} />
           </button>
 
-          {open ? (
-            <div className="mt-2 space-y-1.5 border-l-2 border-muted pl-3 text-xs leading-relaxed text-muted-foreground">
-              <p>
-                <span className="font-semibold text-card-foreground">Benefits: </span>
-                {verdict.retrieved_chunk.benefits}
-              </p>
-              <p>
-                <span className="font-semibold text-card-foreground">Exclusions: </span>
-                {verdict.retrieved_chunk.exclusions}
-              </p>
-              <p className="pt-1 italic">Source: {verdict.source_citation}</p>
-            </div>
-          ) : null}
+          <AnimatePresence initial={false}>
+            {open ? (
+              <motion.div
+                key="drawer"
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: "auto", opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+                className="overflow-hidden"
+              >
+                <div className="mt-2 space-y-1.5 border-l-2 border-muted pl-3 text-xs leading-relaxed text-muted-foreground">
+                  <p>
+                    <span className="font-semibold text-card-foreground">Benefits: </span>
+                    {verdict.retrieved_chunk.benefits}
+                  </p>
+                  <p>
+                    <span className="font-semibold text-card-foreground">Exclusions: </span>
+                    {verdict.retrieved_chunk.exclusions}
+                  </p>
+                  <p className="pt-1 italic">Source: {verdict.source_citation}</p>
+                </div>
+              </motion.div>
+            ) : null}
+          </AnimatePresence>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 }
 
@@ -282,10 +322,21 @@ function KwalifierPage() {
             {showIneligible ? "Hide" : "Show"} not-eligible
           </Button>
         </div>
-        <div className="mt-3 grid gap-2 sm:grid-cols-2">
-          {shown.map((v) => (
-            <VerdictCard key={v.offer_id} verdict={v} />
-          ))}
+        <div className="relative" style={{ perspective: 1000 }}>
+          <AnimatePresence mode="popLayout" initial={false}>
+            <motion.div
+              key={profileId}
+              initial={{ opacity: 0, x: 28, rotateY: -6 }}
+              animate={{ opacity: 1, x: 0, rotateY: 0 }}
+              exit={{ opacity: 0, x: -28, rotateY: 6 }}
+              transition={{ duration: 0.32, ease: [0.16, 1, 0.3, 1] }}
+              className="mt-3 grid gap-2 sm:grid-cols-2"
+            >
+              {shown.map((v, i) => (
+                <VerdictCard key={v.offer_id} verdict={v} index={i} />
+              ))}
+            </motion.div>
+          </AnimatePresence>
         </div>
         <p className="mt-3 text-[11px] leading-relaxed text-muted-foreground">
           Eligibility is calculated by the bank's rules engine, not by the assistant.
@@ -305,10 +356,24 @@ function KwalifierPage() {
           {messages.map((message) => (
             <Message key={message.id} from={message.role}>
               <MessageContent>
-                {message.parts.map((part, i) =>
-                  part.type === "text" ? (
-                    <MessageResponse key={i}>{part.text}</MessageResponse>
-                  ) : null
+                {message.role === "assistant" ? (
+                  <motion.div
+                    initial={{ clipPath: "inset(0 100% 0 0)" }}
+                    animate={{ clipPath: "inset(0 0% 0 0)" }}
+                    transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+                  >
+                    {message.parts.map((part, i) =>
+                      part.type === "text" ? (
+                        <MessageResponse key={i}>{part.text}</MessageResponse>
+                      ) : null
+                    )}
+                  </motion.div>
+                ) : (
+                  message.parts.map((part, i) =>
+                    part.type === "text" ? (
+                      <MessageResponse key={i}>{part.text}</MessageResponse>
+                    ) : null
+                  )
                 )}
                 {message.role === "assistant" ? (
                   <MessageActions className="mt-1">
