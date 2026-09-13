@@ -25,6 +25,7 @@ export type Verdict = {
   relevance_score: number;
   failed_checks: string[];
   gap_statement?: string;
+  gauge_data?: { have: number; need: number; max: number; label: string; };
   source_citation: string;
   retrieved_chunk: { benefits: string; exclusions: string };
 };
@@ -35,6 +36,7 @@ type Check = {
   /** true when the customer is only one step / small margin away */
   near: boolean;
   gap: string;
+  gauge_data?: { have: number; need: number; max: number; label: string; };
 };
 
 function buildChecks(offer: Offer, profile: CustomerProfile): Check[] {
@@ -48,17 +50,20 @@ function buildChecks(offer: Offer, profile: CustomerProfile): Check[] {
       passed: have >= need,
       near: have === need - 1,
       gap: `Moving your credit score band from "${profile.credit_score_band}" to "${offer.min_credit_score_band}" would unlock this offer.`,
+      gauge_data: { have, need, max: SCORE_ORDER.length - 1, label: "Credit Score" },
     });
   }
 
   if (offer.min_tenure_years !== undefined) {
     const have = profile.tenure_years ?? 0;
-    const missing = offer.min_tenure_years - have;
+    const need = offer.min_tenure_years;
+    const missing = need - have;
     checks.push({
       label: "tenure_years",
-      passed: have >= offer.min_tenure_years,
+      passed: have >= need,
       near: missing > 0 && missing <= 2,
-      gap: `You need ${offer.min_tenure_years} years with the bank and currently have ${have} — ${Math.max(missing, 0)} more year(s) would unlock this offer.`,
+      gap: `You need ${need} years with the bank and currently have ${have} — ${Math.max(missing, 0)} more year(s) would unlock this offer.`,
+      gauge_data: { have, need, max: need + 2, label: "Tenure (yrs)" },
     });
   }
 
@@ -70,6 +75,7 @@ function buildChecks(offer: Offer, profile: CustomerProfile): Check[] {
       passed: have >= need,
       near: have === need - 1,
       gap: `Raising your average balance band from "${profile.avg_balance_band}" to "${offer.min_avg_balance_band}" would unlock this offer.`,
+      gauge_data: { have, need, max: SIZE_ORDER.length - 1, label: "Balance" },
     });
   }
 
@@ -81,6 +87,7 @@ function buildChecks(offer: Offer, profile: CustomerProfile): Check[] {
       passed: have >= need,
       near: have === need - 1,
       gap: `Your monthly transaction volume band is "${profile.monthly_transaction_volume_band ?? "unknown"}" and this offer needs "${offer.min_monthly_transaction_volume_band}" — a step up in monthly card activity would unlock it.`,
+      gauge_data: { have, need, max: SIZE_ORDER.length - 1, label: "Activity" },
     });
   }
 
@@ -91,6 +98,7 @@ function buildChecks(offer: Offer, profile: CustomerProfile): Check[] {
       passed: profile.utilization < offer.max_utilization_pct,
       near: over >= 0 && over <= 20,
       gap: `You're close — bringing credit utilization (the share of your credit limit you use) below ${offer.max_utilization_pct}% for one billing cycle, from ${profile.utilization}% today, would unlock this.`,
+      gauge_data: { have: profile.utilization, need: offer.max_utilization_pct || 0, max: 100, label: "Utilization %" },
     });
   }
 
@@ -120,6 +128,7 @@ export function computeVerdicts(profile: CustomerProfile, query = ""): Verdict[]
 
     let status: Verdict["status"] = "ineligible";
     let gap_statement: string | undefined;
+    let gauge_data: Verdict["gauge_data"];
 
     const firstFailed = failed[0];
     if (!accountMatches) {
@@ -129,6 +138,7 @@ export function computeVerdicts(profile: CustomerProfile, query = ""): Verdict[]
     } else if (failed.length === 1 && firstFailed?.near) {
       status = "near_miss";
       gap_statement = firstFailed.gap;
+      gauge_data = firstFailed.gauge_data;
     }
 
 
@@ -139,6 +149,7 @@ export function computeVerdicts(profile: CustomerProfile, query = ""): Verdict[]
       relevance_score: relevance(offer, profile, query),
       failed_checks: accountMatches ? failed.map((c) => c.label) : ["account_type"],
       ...(gap_statement ? { gap_statement } : {}),
+      ...(gauge_data ? { gauge_data } : {}),
       source_citation: `${offer.name} (${offer.offer_id}), valid ${offer.valid_from} to ${offer.valid_to}`,
       retrieved_chunk: { benefits: offer.benefits, exclusions: offer.exclusions },
     };

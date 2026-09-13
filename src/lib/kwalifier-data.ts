@@ -98,7 +98,7 @@ export const PROFILES: CustomerProfile[] = [
     avg_balance_band: "medium",
     utilization: 30,
     linked_accounts: false,
-    blurb: "Personal account · travel spender · 10 years with the bank",
+    blurb: "Personal account with a focus on travel spend and 10 years of history with the bank.",
   },
   {
     id: "aadarsh",
@@ -111,7 +111,7 @@ export const PROFILES: CustomerProfile[] = [
     utilization: 40,
     linked_accounts: true,
     linked_account_labels: ["Business Account A", "Business Account B"],
-    blurb: "Business account · gifting spend · two linked business accounts",
+    blurb: "Business account with a focus on gifting spend and two linked business accounts.",
   },
   {
     id: "allan",
@@ -123,7 +123,7 @@ export const PROFILES: CustomerProfile[] = [
     monthly_transaction_volume_band: "high",
     utilization: 85,
     linked_accounts: false,
-    blurb: "Business account · gifting spend · high utilization (85%)",
+    blurb: "Business account with a focus on gifting spend and high utilization at 85%.",
   },
 ];
 

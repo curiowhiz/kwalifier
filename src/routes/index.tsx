@@ -3,15 +3,12 @@ import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
-  BadgeCheck,
   ChevronDown,
   Eye,
   EyeOff,
-  ShieldAlert,
   Sparkle,
   ThumbsDown,
   ThumbsUp,
-  TrendingUp,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -75,64 +72,124 @@ const STARTERS = [
   "Am I close to qualifying for anything better?",
 ];
 
-function VerdictCard({ verdict }: { verdict: Verdict }) {
-  const [open, setOpen] = useState(false);
-  const eligible = verdict.status === "eligible";
-  const near = verdict.status === "near_miss";
+
+import { motion } from "motion/react";
+
+function RadialGauge({ have, need, max, label }: { have: number, need: number, max: number, label: string }) {
+  const percentage = Math.min(100, Math.max(0, (have / max) * 100));
+  const needPercentage = Math.min(100, Math.max(0, (need / max) * 100));
+  const radius = 16;
+  const circumference = 2 * Math.PI * radius;
+  const strokeDashoffset = circumference - (percentage / 100) * circumference;
 
   return (
-    <div
-      className={cn(
-        "rounded-xl border p-3 text-left",
-        eligible && "border-eligible/30 bg-eligible-surface",
-        near && "border-nearmiss/35 bg-nearmiss-surface",
-        !eligible && !near && "border-border bg-muted"
-      )}
-    >
-      <div className="flex items-start gap-2">
-        <span
-          className={cn(
-            "mt-0.5 shrink-0 rounded-full p-1",
-            eligible && "bg-eligible text-eligible-foreground",
-            near && "bg-nearmiss text-nearmiss-foreground",
-            !eligible && !near && "bg-muted-foreground/20 text-muted-foreground"
-          )}
-        >
-          {eligible ? (
-            <BadgeCheck className="size-3.5" />
-          ) : near ? (
-            <TrendingUp className="size-3.5" />
-          ) : (
-            <ShieldAlert className="size-3.5" />
-          )}
+    <div className="flex items-center gap-3">
+      <div className="relative size-11 shrink-0">
+        <svg className="size-full -rotate-90 transform" viewBox="0 0 36 36">
+          <circle cx="18" cy="18" r={radius} fill="none" className="stroke-muted" strokeWidth="3" />
+          <motion.circle
+            cx="18" cy="18" r={radius} fill="none" stroke="currentColor" strokeWidth="3"
+            strokeLinecap="round"
+            className="stroke-nearmiss text-nearmiss"
+            strokeDasharray={circumference}
+            initial={{ strokeDashoffset: circumference }}
+            animate={{ strokeDashoffset }}
+            transition={{ duration: 1, ease: "easeOut" }}
+          />
+          {/* Threshold marker: the real "need" value, drawn as a tick crossing the ring */}
+          <line
+            x1="18" y1="1" x2="18" y2="7"
+            stroke="currentColor" strokeWidth="1.5"
+            className="text-card-foreground/70"
+            transform={`rotate(${needPercentage * 3.6} 18 18)`}
+          />
+        </svg>
+      </div>
+      <div className="flex flex-col">
+        <span className="text-[11px] text-muted-foreground">{label}</span>
+        <span className="font-mono text-sm tabular-nums text-card-foreground">
+          {have}
+          <span className="text-muted-foreground"> / {need} required</span>
         </span>
-        <div className="min-w-0 flex-1">
-          <p className="text-sm font-semibold leading-snug">{verdict.name}</p>
-          <p className="text-xs text-muted-foreground">
-            {eligible ? "Eligible" : near ? "Almost there" : "Not eligible right now"} ·{" "}
+      </div>
+    </div>
+  );
+}
+
+/** A brass ink-stamp graphic - the bank's mark of approval, not a status icon. */
+function ApprovalSeal() {
+  return (
+    <motion.div
+      initial={{ opacity: 0, scale: 1.8, rotate: 6 }}
+      animate={{ opacity: 0.92, scale: 1, rotate: -7 }}
+      transition={{ type: "spring", stiffness: 260, damping: 20 }}
+      className="pointer-events-none absolute right-3 top-3 text-eligible mix-blend-multiply"
+      aria-hidden="true"
+    >
+      <svg width="52" height="52" viewBox="0 0 52 52" fill="none">
+        <circle cx="26" cy="26" r="23" stroke="currentColor" strokeWidth="1.5" strokeDasharray="2.2 2.6" />
+        <circle cx="26" cy="26" r="18" stroke="currentColor" strokeWidth="1.25" />
+        <path
+          d="M18 26.5l5.5 5.5L34.5 20"
+          stroke="currentColor"
+          strokeWidth="2.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+      <span className="sr-only">Approved</span>
+    </motion.div>
+  );
+}
+
+function VerdictCard({ verdict }: { verdict: Verdict }) {
+  const [open, setOpen] = useState(false);
+
+  const isEligible = verdict.status === "eligible";
+  const isNearMiss = verdict.status === "near_miss";
+
+  return (
+    <div className="on-parchment relative flex flex-col overflow-hidden border border-border bg-card p-4 transition-all">
+      {isEligible && <ApprovalSeal />}
+
+      <div className="flex items-start justify-between gap-2">
+        <div className="flex-1 space-y-1">
+          <h3 className="font-serif text-lg font-medium text-card-foreground">
+            {verdict.name}
+          </h3>
+          <p className="font-mono text-[11px] text-muted-foreground">
             {verdict.offer_id}
           </p>
+
+          {isNearMiss && verdict.gauge_data && (
+            <div className="mt-3 mb-2">
+              <RadialGauge {...verdict.gauge_data} />
+            </div>
+          )}
+
           {verdict.gap_statement ? (
-            <p className="mt-1.5 text-xs leading-relaxed text-foreground/80">
+            <p className="mt-2 text-xs leading-relaxed text-card-foreground/80">
               {verdict.gap_statement}
             </p>
           ) : null}
+
           <button
             type="button"
             onClick={() => setOpen((v) => !v)}
-            className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline"
+            className="mt-3 inline-flex items-center gap-1 text-xs font-medium text-card-foreground hover:underline focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
           >
             Why am I seeing this?
             <ChevronDown className={cn("size-3 transition-transform", open && "rotate-180")} />
           </button>
+
           {open ? (
-            <div className="mt-2 space-y-1.5 rounded-lg bg-card/70 p-2 text-xs leading-relaxed text-muted-foreground">
+            <div className="mt-2 space-y-1.5 border-l-2 border-muted pl-3 text-xs leading-relaxed text-muted-foreground">
               <p>
-                <span className="font-semibold text-foreground">Benefits: </span>
+                <span className="font-semibold text-card-foreground">Benefits: </span>
                 {verdict.retrieved_chunk.benefits}
               </p>
               <p>
-                <span className="font-semibold text-foreground">Exclusions: </span>
+                <span className="font-semibold text-card-foreground">Exclusions: </span>
                 {verdict.retrieved_chunk.exclusions}
               </p>
               <p className="pt-1 italic">Source: {verdict.source_citation}</p>
@@ -191,13 +248,13 @@ function KwalifierPage() {
       <header className="flex flex-wrap items-center gap-3">
         <img src={mark} alt="Kwalifier" width={40} height={40} className="size-10" />
         <div className="mr-auto">
-          <h1 className="text-xl leading-tight">Kwalifier</h1>
+          <h1 className="font-serif text-2xl font-semibold text-foreground">Kwalifier</h1>
           <p className="text-xs text-muted-foreground">
             Your card offers, explained clearly
           </p>
         </div>
         <Select value={profileId} onValueChange={switchProfile}>
-          <SelectTrigger className="w-[168px] bg-card">
+          <SelectTrigger className="on-parchment w-[168px] bg-card text-card-foreground">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -212,9 +269,9 @@ function KwalifierPage() {
 
       <p className="mt-2 text-xs text-muted-foreground">Signed in as {profile.blurb}</p>
 
-      <section className="mt-4 rounded-2xl border border-border bg-card p-3 shadow-panel">
+      <section className="mt-4 border border-border bg-transparent p-3">
         <div className="flex items-center gap-2">
-          <h2 className="mr-auto text-sm font-semibold">Your eligibility snapshot</h2>
+          <h2 className="font-serif mr-auto text-lg font-medium text-foreground">Your eligibility snapshot</h2>
           <Button
             variant="ghost"
             size="sm"
@@ -297,13 +354,13 @@ function KwalifierPage() {
       </Conversation>
 
       {messages.length === 0 ? (
-        <div className="mb-3 flex flex-wrap gap-2">
+        <div className="on-parchment mb-3 flex flex-wrap gap-2">
           {STARTERS.map((s) => (
             <button
               key={s}
               type="button"
               onClick={() => send(s)}
-              className="rounded-full border border-border bg-card px-3 py-1.5 text-xs text-foreground/80 transition-colors hover:border-primary/40 hover:text-foreground"
+              className="border border-border bg-card px-3 py-1.5 text-xs text-card-foreground/80 transition-colors hover:border-primary hover:text-card-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
             >
               {s}
             </button>
@@ -312,7 +369,7 @@ function KwalifierPage() {
       ) : null}
 
       <PromptInput
-        className="bg-card shadow-panel"
+        className="on-parchment bg-card shadow-panel"
         onSubmit={(_message, event) => {
           event.preventDefault();
           send(input);

@@ -12,4 +12,10 @@ export default defineConfig({
     // nitro/vite builds from this
     server: { entry: "server" },
   },
+  // Outside the Lovable sandbox this only sets Nitro's fallback preset — Nitro still
+  // auto-detects the deploy target from env vars first. Pinned explicitly so a build on
+  // Vercel can't silently fall back to the wrapper's cloudflare-module default.
+  nitro: {
+    preset: "vercel",
+  },
 });
