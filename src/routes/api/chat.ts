@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { convertToModelMessages, streamText, type UIMessage } from "ai";
-import { createOpenAI } from "@ai-sdk/openai";
+import { createGoogleGenerativeAI } from "@ai-sdk/google";
 
 import { computeVerdicts, isAmbiguous } from "@/lib/eligibility";
 import { getProfile } from "@/lib/kwalifier-data";
@@ -27,7 +27,7 @@ export const Route = createFileRoute("/api/chat")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        const apiKey = process.env["LOVABLE_API_KEY"];
+        const apiKey = process.env["GOOGLE_GENERATIVE_AI_API_KEY"];
         if (!apiKey) {
           return new Response(JSON.stringify({ error: "AI is not configured." }), {
             status: 500,
@@ -69,28 +69,12 @@ QUERY AMBIGUITY FLAG (from the app, not from you): ${
 PRE-COMPUTED RULES-ENGINE VERDICTS WITH RETRIEVED DOCUMENT CHUNKS (already sorted by relevance to this question):
 ${JSON.stringify(verdicts, null, 2)}`;
 
-        const openai = createOpenAI({
-          baseURL: "https://ai.gateway.lovable.dev/v1",
-          apiKey,
-          headers: {
-            "Lovable-API-Key": apiKey,
-            "X-Lovable-AIG-SDK": "vercel-ai-sdk",
-          },
-        });
+        const google = createGoogleGenerativeAI({ apiKey });
 
         const result = streamText({
-          model: openai.responses("openai/gpt-6-astra"),
+          model: google("gemini-3.6-flash"),
           system: `${SYSTEM_PROMPT}\n\n---\n${context}`,
           messages: await convertToModelMessages(messages),
-          providerOptions: {
-            openai: {
-              forceReasoning: true,
-              reasoningEffort: "low",
-              reasoningSummary: "auto",
-              store: false,
-              include: ["reasoning.encrypted_content"],
-            },
-          },
           abortSignal: request.signal,
         });
 
