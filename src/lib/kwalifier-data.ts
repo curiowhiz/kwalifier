@@ -128,4 +128,5 @@ export const PROFILES: CustomerProfile[] = [
 ];
 
 export const getProfile = (id: string): CustomerProfile =>
-  PROFILES.find((p) => p.id === id) ?? PROFILES[0];
+  PROFILES.find((p) => p.id === id) ?? (PROFILES[0] as CustomerProfile);
+

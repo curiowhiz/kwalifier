@@ -121,14 +121,16 @@ export function computeVerdicts(profile: CustomerProfile, query = ""): Verdict[]
     let status: Verdict["status"] = "ineligible";
     let gap_statement: string | undefined;
 
+    const firstFailed = failed[0];
     if (!accountMatches) {
       status = "ineligible";
     } else if (failed.length === 0) {
       status = "eligible";
-    } else if (failed.length === 1 && failed[0].near) {
+    } else if (failed.length === 1 && firstFailed?.near) {
       status = "near_miss";
-      gap_statement = failed[0].gap;
+      gap_statement = firstFailed.gap;
     }
+
 
     return {
       offer_id: offer.offer_id,

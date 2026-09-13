@@ -81,7 +81,7 @@ ${JSON.stringify(verdicts, null, 2)}`;
         const result = streamText({
           model: openai.responses("openai/gpt-6-astra"),
           system: `${SYSTEM_PROMPT}\n\n---\n${context}`,
-          messages: convertToModelMessages(messages),
+          messages: await convertToModelMessages(messages),
           providerOptions: {
             openai: {
               forceReasoning: true,

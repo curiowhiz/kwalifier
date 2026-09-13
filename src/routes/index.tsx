@@ -145,7 +145,7 @@ function VerdictCard({ verdict }: { verdict: Verdict }) {
 }
 
 function KwalifierPage() {
-  const [profileId, setProfileId] = useState(PROFILES[0].id);
+  const [profileId, setProfileId] = useState(PROFILES[0]!.id);
   const [lastQuery, setLastQuery] = useState("");
   const [showIneligible, setShowIneligible] = useState(false);
   const [feedback, setFeedback] = useState<Record<string, "up" | "down">>({});
