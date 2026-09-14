@@ -84,7 +84,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
           "Kwalifier explains which bank credit card offers you qualify for, with clear next steps when you're close.",
       },
       { name: "author", content: "Kwalifier" },
-      { name: "theme-color", content: "#14202B" },
+      { name: "theme-color", content: "#FBF6F0" },
       { property: "og:title", content: "Kwalifier — Card Offer Eligibility Assistant" },
       {
         property: "og:description",

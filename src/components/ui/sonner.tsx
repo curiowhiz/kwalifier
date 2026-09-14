@@ -10,7 +10,7 @@ const Toaster = ({ ...props }: ToasterProps) => {
         {
           // Sonner sets these on the toaster root per data-sonner-theme; an
           // inline style here outranks that regardless of theme, so toasts
-          // read as parchment notes instead of sonner's default light card.
+          // match the app's own card styling instead of sonner's defaults.
           "--normal-bg": "var(--card)",
           "--normal-border": "var(--border)",
           "--normal-text": "var(--card-foreground)",
@@ -24,7 +24,7 @@ const Toaster = ({ ...props }: ToasterProps) => {
       }
       toastOptions={{
         classNames: {
-          toast: "group toast on-parchment shadow-lg",
+          toast: "group toast shadow-lg",
           description: "group-[.toast]:text-muted-foreground",
           actionButton: "group-[.toast]:bg-primary group-[.toast]:text-primary-foreground",
           cancelButton: "group-[.toast]:bg-muted group-[.toast]:text-muted-foreground",

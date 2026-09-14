@@ -130,7 +130,7 @@ function RadialGauge({ have, need, max, label }: { have: number, need: number, m
   );
 }
 
-/** A brass ink-stamp graphic - the bank's mark of approval, not a status icon. */
+/** A sage ink-stamp graphic - the bank's mark of approval, not a status icon. */
 function ApprovalSeal() {
   return (
     <div className="pointer-events-none absolute right-3 top-3" aria-hidden="true">
@@ -177,7 +177,7 @@ function VerdictCard({ verdict, index }: { verdict: Verdict; index: number }) {
       animate={{ opacity: 1, scaleY: 1, y: 0 }}
       transition={{ duration: 0.45, delay: index * 0.07, ease: [0.16, 1, 0.3, 1] }}
       style={{ transformOrigin: "top" }}
-      className="on-parchment relative flex flex-col overflow-hidden border border-border bg-card p-4"
+      className="relative flex flex-col overflow-hidden border border-border bg-card p-4"
     >
       {isEligible && <ApprovalSeal />}
 
@@ -294,7 +294,7 @@ function KwalifierPage() {
           </p>
         </div>
         <Select value={profileId} onValueChange={switchProfile}>
-          <SelectTrigger className="on-parchment w-[168px] bg-card text-card-foreground">
+          <SelectTrigger className="w-[168px] bg-card text-card-foreground">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -419,7 +419,7 @@ function KwalifierPage() {
       </Conversation>
 
       {messages.length === 0 ? (
-        <div className="on-parchment mb-3 flex flex-wrap gap-2">
+        <div className="mb-3 flex flex-wrap gap-2">
           {STARTERS.map((s) => (
             <button
               key={s}
@@ -434,7 +434,7 @@ function KwalifierPage() {
       ) : null}
 
       <PromptInput
-        className="on-parchment bg-card shadow-panel"
+        className="bg-card shadow-panel"
         onSubmit={(_message, event) => {
           event.preventDefault();
           send(input);
