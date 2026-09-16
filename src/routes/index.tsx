@@ -177,12 +177,12 @@ function VerdictCard({ verdict, index }: { verdict: Verdict; index: number }) {
       animate={{ opacity: 1, scaleY: 1, y: 0 }}
       transition={{ duration: 0.45, delay: index * 0.07, ease: [0.16, 1, 0.3, 1] }}
       style={{ transformOrigin: "top" }}
-      className="relative flex flex-col overflow-hidden border border-border bg-card p-4"
+      className="on-parchment relative flex flex-col overflow-hidden border border-border bg-card p-4"
     >
       {isEligible && <ApprovalSeal />}
 
       <div className="flex items-start justify-between gap-2">
-        <div className="flex-1 space-y-1">
+        <div className={cn("flex-1 space-y-1", isEligible && "pr-14")}>
           <h3 className="font-serif text-lg font-medium text-card-foreground">
             {verdict.name}
           </h3>
@@ -294,7 +294,7 @@ function KwalifierPage() {
           </p>
         </div>
         <Select value={profileId} onValueChange={switchProfile}>
-          <SelectTrigger className="w-[168px] bg-card text-card-foreground">
+          <SelectTrigger className="on-parchment w-[168px] bg-card text-card-foreground">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -419,7 +419,7 @@ function KwalifierPage() {
       </Conversation>
 
       {messages.length === 0 ? (
-        <div className="mb-3 flex flex-wrap gap-2">
+        <div className="on-parchment mb-3 flex flex-wrap gap-2">
           {STARTERS.map((s) => (
             <button
               key={s}
@@ -434,7 +434,7 @@ function KwalifierPage() {
       ) : null}
 
       <PromptInput
-        className="bg-card shadow-panel"
+        className="on-parchment bg-card shadow-panel"
         onSubmit={(_message, event) => {
           event.preventDefault();
           send(input);

@@ -29,7 +29,7 @@
   --font-display: "Fraunces", ui-serif, Georgia, serif;
   --font-serif: Fraunces, ui-serif, serif;
   --font-mono: 'IBM Plex Mono', monospace;
-  --font-sans: 'IBM Plex Sans', ui-sans-serif, system-ui, sans-serif;
+  --font-sans: 'Public Sans', ui-sans-serif, system-ui, sans-serif;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -69,56 +69,65 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
-  --shadow-panel: 0 1px 2px oklch(0.2781 0.0296 256.85 / 0.06), 0 12px 32px oklch(0.2781 0.0296 256.85 / 0.1);
+  --shadow-panel: 0 1px 2px oklch(0.2378 0.0272 246.86 / 0.3), 0 12px 32px oklch(0.2378 0.0272 246.86 / 0.35);
 }
 
 :root {
   --radius: 0.125rem;
-  /* Warm cream #FBF6F0 */
-  --background: oklch(0.9753 0.0096 72.66);
-  /* Charcoal #1F2937 */
-  --foreground: oklch(0.2781 0.0296 256.85);
-  /* White - cards float on the cream canvas */
-  --card: oklch(1 0 89.88);
-  --card-foreground: oklch(0.2781 0.0296 256.85);
-  --popover: oklch(1 0 89.88);
-  --popover-foreground: oklch(0.2781 0.0296 256.85);
-  /* Coral #D1402F */
-  --primary: oklch(0.58 0.1845 30.2);
-  --primary-foreground: oklch(1 0 89.88);
-  --secondary: oklch(0.9456 0.0165 79.35);
-  --secondary-foreground: oklch(0.2781 0.0296 256.85);
-  --muted: oklch(0.7328 0.0464 80.45);
-  --muted-foreground: oklch(0.556 0.0193 75.99);
-  /* Pale coral wash - hover states, not the solid CTA color */
-  --accent: oklch(0.9361 0.0263 32.24);
-  --accent-foreground: oklch(0.2781 0.0296 256.85);
-  --destructive: oklch(0.5243 0.1571 24.33);
-  --destructive-foreground: oklch(1 0 89.88);
-  /* Sage #4C7A5E - approved / eligible */
-  --eligible: oklch(0.5379 0.0673 156.56);
-  --eligible-foreground: oklch(1 0 89.88);
-  --eligible-surface: oklch(0.9323 0.0117 153.66);
-  /* Terracotta #C1622D - near-miss */
-  --nearmiss: oklch(0.6002 0.1383 47.04);
-  --nearmiss-foreground: oklch(1 0 89.88);
-  --nearmiss-surface: oklch(0.9207 0.0264 58.27);
-  --border: oklch(0.7898 0.0417 79.4);
-  --input: oklch(0.7898 0.0417 79.4);
-  --ring: oklch(0.58 0.1845 30.2);
-  --chart-1: oklch(0.58 0.1845 30.2);
-  --chart-2: oklch(0.5379 0.0673 156.56);
-  --chart-3: oklch(0.6002 0.1383 47.04);
-  --chart-4: oklch(0.2781 0.0296 256.85);
-  --chart-5: oklch(0.556 0.0193 75.99);
-  --sidebar: oklch(0.9753 0.0096 72.66);
-  --sidebar-foreground: oklch(0.2781 0.0296 256.85);
-  --sidebar-primary: oklch(0.58 0.1845 30.2);
-  --sidebar-primary-foreground: oklch(1 0 89.88);
-  --sidebar-accent: oklch(0.9456 0.0165 79.35);
-  --sidebar-accent-foreground: oklch(0.2781 0.0296 256.85);
-  --sidebar-border: oklch(0.7898 0.0417 79.4);
-  --sidebar-ring: oklch(0.58 0.1845 30.2);
+  /* Ledger Navy #14202B */
+  --background: oklch(0.2378 0.0272 246.86);
+  /* Parchment #F4EFE4 - text sitting directly on the navy page */
+  --foreground: oklch(0.953 0.0156 86.43);
+  /* Parchment #F4EFE4 - cards read as paper laid on the navy */
+  --card: oklch(0.953 0.0156 86.43);
+  /* Ledger Navy - body text on parchment cards */
+  --card-foreground: oklch(0.2378 0.0272 246.86);
+  --popover: oklch(0.953 0.0156 86.43);
+  --popover-foreground: oklch(0.2378 0.0272 246.86);
+  /* Vault Brass #C89B4A */
+  --primary: oklch(0.7158 0.1122 79.98);
+  --primary-foreground: oklch(0.2378 0.0272 246.86);
+  /* Ledger Navy, reused as a slightly-lit navy panel */
+  --secondary: oklch(0.2378 0.0272 246.86);
+  --secondary-foreground: oklch(0.953 0.0156 86.43);
+  --muted: oklch(0.2378 0.0272 246.86);
+  --muted-foreground: oklch(0.6646 0.0234 76.44);
+  --accent: oklch(0.7158 0.1122 79.98);
+  --accent-foreground: oklch(0.2378 0.0272 246.86);
+  --destructive: oklch(0.5541 0.1328 31.55);
+  --destructive-foreground: oklch(0.953 0.0156 86.43);
+  /* Vault Brass #C89B4A - approved / eligible */
+  --eligible: oklch(0.7158 0.1122 79.98);
+  --eligible-foreground: oklch(0.2378 0.0272 246.86);
+  --eligible-surface: oklch(0.3207 0.0303 85.52);
+  /* Clay Rust #A85C32 - near-miss */
+  --nearmiss: oklch(0.5555 0.1141 47.89);
+  --nearmiss-foreground: oklch(0.953 0.0156 86.43);
+  --nearmiss-surface: oklch(0.2851 0.0381 45.21);
+  --border: oklch(0.5382 0.0428 246.25);
+  --input: oklch(0.5382 0.0428 246.25);
+  --ring: oklch(0.7158 0.1122 79.98);
+  --chart-1: oklch(0.7158 0.1122 79.98);
+  --chart-2: oklch(0.5555 0.1141 47.89);
+  --chart-3: oklch(0.953 0.0156 86.43);
+  --chart-4: oklch(0.6646 0.0234 76.44);
+  --chart-5: oklch(0.2378 0.0272 246.86);
+  --sidebar: oklch(0.2378 0.0272 246.86);
+  --sidebar-foreground: oklch(0.953 0.0156 86.43);
+  --sidebar-primary: oklch(0.7158 0.1122 79.98);
+  --sidebar-primary-foreground: oklch(0.2378 0.0272 246.86);
+  --sidebar-accent: oklch(0.2378 0.0272 246.86);
+  --sidebar-accent-foreground: oklch(0.953 0.0156 86.43);
+  --sidebar-border: oklch(0.5382 0.0428 246.25);
+  --sidebar-ring: oklch(0.7158 0.1122 79.98);
+}
+
+/* Text sitting on a Parchment card (verdict cards, the assistant bubble, the
+   prompt bar) needs a tone dimmed from Ledger Navy, not the page's
+   dimmed-Parchment --muted-foreground - that pairing is illegible on paper. */
+.on-parchment,
+.is-assistant {
+  --muted-foreground: oklch(0.2378 0.0272 246.86 / 0.62);
 }
 
 
@@ -155,6 +164,26 @@
   --sidebar-accent-foreground: oklch(0.984 0.003 247.858);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.551 0.027 264.364);
+}
+
+/*
+ * Admin/ops dashboard palette (src/routes/admin.tsx only).
+ * Scoped, additive tokens - the customer-facing chat page does not
+ * reference any of these, so this block cannot change how it looks.
+ */
+:root {
+  /* Ledger Navy #14202B */
+  --ledger-navy: oklch(0.2378 0.0272 246.86);
+  /* Parchment #F4EFE4 - this admin canvas's own parchment, distinct from --background */
+  --admin-parchment: oklch(0.953 0.0156 86.43);
+  /* Vault Brass #C89B4A - backgrounds, icons, borders, button fills */
+  --vault-brass: oklch(0.7158 0.1122 79.98);
+  /* Vault Brass, darkened for use as text on light surfaces (raw brass fails contrast at ~2.2:1) */
+  --vault-brass-text: oklch(0.4901 0.0811 77.34);
+  /* Clay Rust #A85C32 */
+  --clay-rust: oklch(0.5555 0.1141 47.89);
+  /* Moss #5C7A3D */
+  --moss: oklch(0.5412 0.0942 130.51);
 }
 
 @layer base {
