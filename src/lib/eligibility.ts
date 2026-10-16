@@ -12,8 +12,8 @@ import {
   type SizeBand,
 } from "./kwalifier-data";
 
-const SCORE_ORDER: Band[] = ["poor", "fair", "good", "excellent"];
-const SIZE_ORDER: SizeBand[] = ["low", "medium", "high"];
+export const SCORE_ORDER: Band[] = ["poor", "fair", "good", "excellent"];
+export const SIZE_ORDER: SizeBand[] = ["low", "medium", "high"];
 
 const rank = <T extends string>(order: T[], value: T | undefined) =>
   value === undefined ? -1 : order.indexOf(value);

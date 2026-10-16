@@ -3,6 +3,7 @@ import { convertToModelMessages, streamText, type UIMessage } from "ai";
 import { createGoogleGenerativeAI } from "@ai-sdk/google";
 
 import { computeVerdicts, isAmbiguous } from "@/lib/eligibility";
+import { kwalifierLibrary } from "@/lib/genui-library";
 import { getProfile } from "@/lib/kwalifier-data";
 
 // In-memory, per-instance rate limit. This is a demo, not a production
@@ -56,6 +57,29 @@ CONSTRAINTS AND GUARDRAILS:
 - If you cannot confidently answer from the information provided, say so plainly rather than guessing, and offer to connect the customer with a human representative.
 - If the customer is offensive, respond calmly, do not mirror the tone, and briefly redirect to how you can help.
 - If a query implies access to another account or to sensitive identifiers, decline clearly without implying suspicion of the customer.`;
+
+// Generated from the same component library the chat renders, so the model is
+// only ever told about components that exist. Every card takes an offer_id and
+// reads its verdict from the rules engine on the client.
+const ANSWER_CARDS_PROMPT = kwalifierLibrary.prompt({
+  preamble: `ANSWER CARDS: Alongside your written answer you can show the customer interactive offer cards, written in openui-lang, a small UI language described below. The cards read status, gap, benefits and exclusions from the bank's rules engine themselves; you only choose which offers to show.`,
+  examples: [
+    `An eligible offer, then a near-miss offer with its what-if simulator:
+\`\`\`openui-lang
+root = Answer([biz, plat, platSim])
+biz = OfferCard("BIZ001")
+plat = OfferCard("PLAT001")
+platSim = WhatIf("PLAT001")
+\`\`\``,
+  ],
+  additionalRules: [
+    "Your response is your plain-language answer, following the OUTPUT FORMAT above. When that answer discusses specific offers, end it with exactly ONE fenced block that opens with ```openui-lang and closes with ```, holding an Answer with an OfferCard for each offer you discussed, in the same order.",
+    "Put a WhatIf card right after the OfferCard of every near_miss offer you discussed. Never use WhatIf for an eligible or ineligible offer.",
+    "Use only offer_ids that appear in the verdict data. Never add a card for an ineligible offer unless the customer explicitly asked about it.",
+    "Write no block when you are asking a clarifying question, declining, or not discussing any specific offer.",
+    "When you add a WhatIf card, you may invite the customer to try the slider below your answer. Never mention openui-lang, code, or blocks in your written answer.",
+  ],
+});
 
 export const Route = createFileRoute("/api/chat")({
   server: {
@@ -138,7 +162,7 @@ ${JSON.stringify(verdicts, null, 2)}`;
 
         const result = streamText({
           model: google("gemini-3.6-flash"),
-          system: `${SYSTEM_PROMPT}\n\n---\n${context}`,
+          system: `${SYSTEM_PROMPT}\n\n---\n${ANSWER_CARDS_PROMPT}\n\n---\n${context}`,
           messages: await convertToModelMessages(messages),
           abortSignal: request.signal,
         });
