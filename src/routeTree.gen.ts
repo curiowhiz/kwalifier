@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminRouteImport } from './routes/admin'
+import { Route as ClassicRouteImport } from './routes/classic'
 import { Route as V2RouteImport } from './routes/v2'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as AdminFailureQueueRouteImport } from './routes/admin/failure-queue'
@@ -26,6 +27,11 @@ const IndexRoute = IndexRouteImport.update({
 const AdminRoute = AdminRouteImport.update({
   id: '/admin',
   path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ClassicRoute = ClassicRouteImport.update({
+  id: '/classic',
+  path: '/classic',
   getParentRoute: () => rootRouteImport,
 } as any)
 const V2Route = V2RouteImport.update({
@@ -62,6 +68,7 @@ const ApiChatRoute = ApiChatRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
+  '/classic': typeof ClassicRoute
   '/v2': typeof V2Route
   '/admin/failure-queue': typeof AdminFailureQueueRoute
   '/admin/settings': typeof AdminSettingsRoute
@@ -71,6 +78,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/classic': typeof ClassicRoute
   '/v2': typeof V2Route
   '/admin/failure-queue': typeof AdminFailureQueueRoute
   '/admin/settings': typeof AdminSettingsRoute
@@ -82,6 +90,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
+  '/classic': typeof ClassicRoute
   '/v2': typeof V2Route
   '/admin/failure-queue': typeof AdminFailureQueueRoute
   '/admin/settings': typeof AdminSettingsRoute
@@ -94,6 +103,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/admin'
+    | '/classic'
     | '/v2'
     | '/admin/failure-queue'
     | '/admin/settings'
@@ -103,6 +113,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/classic'
     | '/v2'
     | '/admin/failure-queue'
     | '/admin/settings'
@@ -113,6 +124,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/admin'
+    | '/classic'
     | '/v2'
     | '/admin/failure-queue'
     | '/admin/settings'
@@ -124,6 +136,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRoute: typeof AdminRouteWithChildren
+  ClassicRoute: typeof ClassicRoute
   V2Route: typeof V2Route
   ApiChatRoute: typeof ApiChatRoute
 }
@@ -142,6 +155,13 @@ declare module '@tanstack/react-router' {
       path: '/admin'
       fullPath: '/admin'
       preLoaderRoute: typeof AdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/classic': {
+      id: '/classic'
+      path: '/classic'
+      fullPath: '/classic'
+      preLoaderRoute: typeof ClassicRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/v2': {
@@ -208,6 +228,7 @@ const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRouteWithChildren,
+  ClassicRoute: ClassicRoute,
   V2Route: V2Route,
   ApiChatRoute: ApiChatRoute,
 }
