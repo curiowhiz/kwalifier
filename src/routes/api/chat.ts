@@ -3,6 +3,7 @@ import { convertToModelMessages, streamText, type UIMessage } from "ai";
 import { createGoogleGenerativeAI } from "@ai-sdk/google";
 
 import { computeVerdicts, isAmbiguous } from "@/lib/eligibility";
+import { kwalifierLibrary } from "@/lib/genui-library";
 import { getProfile } from "@/lib/kwalifier-data";
 
 // In-memory, per-instance rate limit. This is a demo, not a production
@@ -45,7 +46,7 @@ ROLE: For every customer question, you receive (a) retrieved offer document chun
 
 TONE: Warm, encouraging, and plain-spoken, like a helpful person at the bank who genuinely wants the customer to get the most out of their account, not a rigid script. Assume the customer may not be familiar with banking terminology or with using a chatbot, and never make them feel talked down to for asking. Explain any necessary jargon in plain language alongside it. When a customer is close to qualifying for something but not quite there, frame it as encouraging, actionable news, not a rejection. Keep responses concise and easy to read; do not pad with unnecessary preamble, but don't be curt either.
 
-OUTPUT FORMAT: Present eligible offers first, ranked by relevance to the question, each with a one-line citation to its source document. Present near-miss offers next, each with its gap_statement written as constructive guidance, never as a rejection. Never mention or list ineligible offers unless the customer explicitly asks. Every claim about a specific offer must be traceable to the specific offer_id provided to you; never combine details from two different offers into one explanation.
+OUTPUT FORMAT: Keep the written answer short, because the offer cards shown under it already carry each offer's benefits, exclusions, gap, gauge and source citation. Write 2 to 4 sentences of plain prose with no headings or bullet lists: say what the customer qualifies for, naming each offer once with its offer_id, eligible offers first and ranked by relevance to the question, then near-miss offers. For each near-miss offer, give the one action from its gap_statement in a single encouraging sentence, never as a rejection. Do not restate benefits, cashback rates, limits, validity dates or citations that the cards show. If you show no cards, keep the same short style and add a one-line source citation for each offer you name. Never mention or list ineligible offers unless the customer explicitly asks. Every claim about a specific offer must be traceable to the specific offer_id provided to you; never combine details from two different offers into one explanation.
 
 CONSTRAINTS AND GUARDRAILS:
 - Never state or imply an eligibility outcome that is not explicitly present in the verdict data you were given.
@@ -56,6 +57,29 @@ CONSTRAINTS AND GUARDRAILS:
 - If you cannot confidently answer from the information provided, say so plainly rather than guessing, and offer to connect the customer with a human representative.
 - If the customer is offensive, respond calmly, do not mirror the tone, and briefly redirect to how you can help.
 - If a query implies access to another account or to sensitive identifiers, decline clearly without implying suspicion of the customer.`;
+
+// Generated from the same component library the chat renders, so the model is
+// only ever told about components that exist. Every card takes an offer_id and
+// reads its verdict from the rules engine on the client.
+const ANSWER_CARDS_PROMPT = kwalifierLibrary.prompt({
+  preamble: `ANSWER CARDS: Alongside your written answer you can show the customer interactive offer cards, written in openui-lang, a small UI language described below. The cards read status, gap, benefits and exclusions from the bank's rules engine themselves; you only choose which offers to show.`,
+  examples: [
+    `An eligible offer, then a near-miss offer with its what-if simulator:
+\`\`\`openui-lang
+root = Answer([biz, plat, platSim])
+biz = OfferCard("BIZ001")
+plat = OfferCard("PLAT001")
+platSim = WhatIf("PLAT001")
+\`\`\``,
+  ],
+  additionalRules: [
+    "Your response is your plain-language answer, following the OUTPUT FORMAT above. When that answer discusses specific offers, end it with exactly ONE fenced block that opens with ```openui-lang and closes with ```, holding an Answer with an OfferCard for each offer you discussed, in the same order.",
+    "Put a WhatIf card right after the OfferCard of every near_miss offer you discussed. Never use WhatIf for an eligible or ineligible offer.",
+    "Use only offer_ids that appear in the verdict data. Never add a card for an ineligible offer unless the customer explicitly asked about it.",
+    "Write no block when you are asking a clarifying question, declining, or not discussing any specific offer.",
+    "When you add a WhatIf card, you may invite the customer to try the slider below your answer. Never mention openui-lang, code, or blocks in your written answer.",
+  ],
+});
 
 export const Route = createFileRoute("/api/chat")({
   server: {
@@ -138,7 +162,7 @@ ${JSON.stringify(verdicts, null, 2)}`;
 
         const result = streamText({
           model: google("gemini-3.6-flash"),
-          system: `${SYSTEM_PROMPT}\n\n---\n${context}`,
+          system: `${SYSTEM_PROMPT}\n\n---\n${ANSWER_CARDS_PROMPT}\n\n---\n${context}`,
           messages: await convertToModelMessages(messages),
           abortSignal: request.signal,
         });
