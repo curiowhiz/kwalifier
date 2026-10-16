@@ -206,3 +206,266 @@
   }
 }
 
+
+/*
+ * Wayfinding design (src/routes/v2.tsx and src/components/v2/ only).
+ * Everything is scoped under .wf, so the classic page cannot pick any of it up.
+ * The shadcn tokens are redefined inside .wf so shared components (toasts,
+ * scroll button, streamed markdown) take the wayfinding palette there.
+ */
+.wf {
+  /* Platform white and the signage panels laid on it */
+  --wf-ground: #eef2f0;
+  --wf-surface: #ffffff;
+  --wf-ink: #10231a;
+  --wf-ink-soft: #46574f;
+  /* Route green: the line you are on, and every stop you have reached */
+  --wf-line: #00694a;
+  --wf-line-deep: #004d36;
+  /* Signal amber: the stop you are one move away from */
+  --wf-amber: #f2a900;
+  --wf-amber-ink: #7a4d00;
+  /* Not on your line */
+  --wf-off: #b9c4bf;
+  --wf-rule: #d5ddd9;
+  --wf-alert: #b42318;
+
+  --background: var(--wf-surface);
+  --foreground: var(--wf-ink);
+  --card: var(--wf-surface);
+  --card-foreground: var(--wf-ink);
+  --popover: var(--wf-surface);
+  --popover-foreground: var(--wf-ink);
+  --primary: var(--wf-line);
+  --primary-foreground: #ffffff;
+  --muted: var(--wf-ground);
+  --muted-foreground: var(--wf-ink-soft);
+  --accent: var(--wf-ground);
+  --accent-foreground: var(--wf-ink);
+  --border: var(--wf-rule);
+  --input: var(--wf-rule);
+  --ring: var(--wf-amber);
+
+  font-family: "Atkinson Hyperlegible Next", "Atkinson Hyperlegible", ui-sans-serif, system-ui, sans-serif;
+  background: var(--wf-ground);
+  color: var(--wf-ink);
+  caret-color: var(--wf-line);
+}
+
+html:has(.wf) body {
+  background: #eef2f0;
+}
+
+.wf h1,
+.wf h2,
+.wf h3 {
+  font-family: inherit;
+  letter-spacing: -0.015em;
+}
+
+.wf ::selection {
+  background: var(--wf-amber);
+  color: var(--wf-ink);
+}
+
+.wf :focus-visible {
+  outline: 3px solid var(--wf-amber);
+  outline-offset: 2px;
+}
+
+.wf a {
+  text-underline-offset: 0.2em;
+}
+
+.wf-tnum {
+  font-variant-numeric: tabular-nums;
+}
+
+/* The route line: stops stacked down the left edge on phones, a horizontal
+   line on wider screens, the way platform signs and line diagrams read. */
+.wf-route {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+}
+
+.wf-stop {
+  position: relative;
+  display: grid;
+  align-content: start;
+  grid-template-columns: 2rem 1fr;
+  column-gap: 0.75rem;
+  padding-bottom: 1.75rem;
+  animation: wf-stop-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: calc(var(--i, 0) * 140ms + 120ms);
+}
+
+.wf-stop:last-child {
+  padding-bottom: 0;
+}
+
+.wf-stop__dot {
+  position: relative;
+  z-index: 1;
+  box-sizing: border-box;
+  width: 1.5rem;
+  height: 1.5rem;
+  margin: 0.05rem auto 0;
+  border-radius: 999px;
+  background: var(--wf-surface);
+  border: 5px solid var(--wf-line);
+  transition:
+    border-color 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+    background-color 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.wf-stop__dot--here {
+  background: var(--wf-ink);
+  border-color: var(--wf-surface);
+  box-shadow: 0 0 0 3px var(--wf-ink);
+}
+
+.wf-stop__dot--near {
+  border-color: var(--wf-amber);
+}
+
+.wf-stop__dot--off {
+  border-color: var(--wf-off);
+}
+
+/* The segment leading out of a stop toward the next one. */
+.wf-stop__seg {
+  position: absolute;
+  top: 1.45rem;
+  bottom: -0.05rem;
+  left: calc(1rem - 3px);
+  border-left: 6px solid var(--wf-line);
+  transform-origin: top;
+  animation: wf-draw-y 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: calc(var(--i, 0) * 140ms + 200ms);
+}
+
+.wf-stop__seg--approach {
+  border-left-style: dashed;
+  border-left-color: var(--wf-amber);
+}
+
+.wf-stop__body {
+  min-width: 0;
+}
+
+@media (min-width: 640px) {
+  .wf-route {
+    flex-direction: row;
+  }
+
+  .wf-stop {
+    flex: 1 1 0;
+    min-width: 0;
+    grid-template-columns: 1fr;
+    row-gap: 0.85rem;
+    padding: 0 1.25rem 0 0;
+  }
+
+  .wf-stop__dot {
+    margin: 0;
+  }
+
+  .wf-stop__seg {
+    top: calc(0.75rem - 3px);
+    bottom: auto;
+    left: 1.5rem;
+    right: 0;
+    border-left: 0;
+    border-top: 6px solid var(--wf-line);
+    transform-origin: left;
+    animation-name: wf-draw-x;
+  }
+
+  .wf-stop__seg--approach {
+    border-top-style: dashed;
+    border-top-color: var(--wf-amber);
+  }
+}
+
+@keyframes wf-stop-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes wf-draw-x {
+  from {
+    transform: scaleX(0);
+  }
+}
+
+@keyframes wf-draw-y {
+  from {
+    transform: scaleY(0);
+  }
+}
+
+/* The what-if slider: a track in route green, a thumb shaped like a stop. */
+.wf-range {
+  appearance: none;
+  width: 100%;
+  height: 1.5rem;
+  background: transparent;
+  cursor: pointer;
+}
+
+.wf-range::-webkit-slider-runnable-track {
+  height: 6px;
+  border-radius: 999px;
+  background: var(--wf-rule);
+}
+
+.wf-range::-moz-range-track {
+  height: 6px;
+  border-radius: 999px;
+  background: var(--wf-rule);
+}
+
+.wf-range::-webkit-slider-thumb {
+  appearance: none;
+  box-sizing: border-box;
+  width: 1.5rem;
+  height: 1.5rem;
+  margin-top: calc(3px - 0.75rem);
+  border-radius: 999px;
+  background: var(--wf-surface);
+  border: 5px solid var(--wf-line);
+}
+
+.wf-range::-moz-range-thumb {
+  box-sizing: border-box;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 999px;
+  background: var(--wf-surface);
+  border: 5px solid var(--wf-line);
+}
+
+.wf-range:focus-visible {
+  outline: none;
+}
+
+.wf-range:focus-visible::-webkit-slider-thumb {
+  box-shadow: 0 0 0 3px var(--wf-amber);
+}
+
+.wf-range:focus-visible::-moz-range-thumb {
+  box-shadow: 0 0 0 3px var(--wf-amber);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wf *,
+  .wf *::before,
+  .wf *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}
