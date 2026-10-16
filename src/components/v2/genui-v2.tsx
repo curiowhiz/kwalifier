@@ -42,12 +42,12 @@ function OfferSign({ offerId }: { offerId: string }) {
       </div>
     );
   }
-  if (verdict.status === "eligible") {
+  if (verdict.status !== "ineligible") {
     // Already on the snapshot map above: name it and point back instead of repeating it.
     return (
       <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-        <StationPlate name={verdict.name} status="eligible" small as="p" />
-        <StatusText status="eligible" />
+        <StationPlate name={verdict.name} status={verdict.status} small as="p" />
+        <StatusText status={verdict.status} />
         <a
           href={`#${stopAnchor(verdict.offer_id)}`}
           className="text-sm font-bold text-[var(--wf-line)] underline decoration-2 underline-offset-4 hover:text-[var(--wf-line-deep)]"
@@ -57,12 +57,13 @@ function OfferSign({ offerId }: { offerId: string }) {
       </div>
     );
   }
+  // Ineligible offers are only on the map when "Show not-eligible" is on, so show them in full.
   return (
     <div className={cn(panel, "space-y-2")}>
       <StationPlate name={verdict.name} status={verdict.status} small as="p" />
       <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
         <StatusText status={verdict.status} />
-        <span className="wf-tnum text-xs text-[var(--wf-ink-soft)]">{verdict.offer_id}</span>
+        <span className="wf-id text-xs text-[var(--wf-ink-soft)]">{verdict.offer_id}</span>
       </div>
       <StopDetails verdict={verdict} />
     </div>

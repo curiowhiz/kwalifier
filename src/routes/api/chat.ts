@@ -81,6 +81,11 @@ platSim = WhatIf("PLAT001")
   ],
 });
 
+// The wayfinding page (/v2) shows every offer it mentions on a map and in
+// cards right under the answer, so its written answers can be shorter still.
+// Only requests from that page get this rule; the classic page is unchanged.
+const WAYFINDING_RULES = `WAYFINDING PAGE: The customer is on a page where every offer you name already appears on a map above your answer, showing its status, today's value, the requirement and the full gap statement, and as a card under your answer. Write at most 3 short sentences and about 50 words. Name each offer once. For a near-miss offer, say the one thing to change in a few plain words, for example "bring your credit utilization below 70%", without repeating today's value, the rest of the gap statement, or definitions the card already gives.`;
+
 export const Route = createFileRoute("/api/chat")({
   server: {
     handlers: {
@@ -105,9 +110,9 @@ export const Route = createFileRoute("/api/chat")({
           );
         }
 
-        let body: { messages: UIMessage[]; profileId?: string };
+        let body: { messages: UIMessage[]; profileId?: string; design?: string };
         try {
-          body = (await request.json()) as { messages: UIMessage[]; profileId?: string };
+          body = (await request.json()) as { messages: UIMessage[]; profileId?: string; design?: string };
         } catch {
           return new Response(JSON.stringify({ error: "Malformed request body." }), {
             status: 400,
@@ -162,7 +167,9 @@ ${JSON.stringify(verdicts, null, 2)}`;
 
         const result = streamText({
           model: google("gemini-3.6-flash"),
-          system: `${SYSTEM_PROMPT}\n\n---\n${ANSWER_CARDS_PROMPT}\n\n---\n${context}`,
+          system: `${SYSTEM_PROMPT}\n\n---\n${ANSWER_CARDS_PROMPT}${
+            body.design === "wayfinding" ? `\n\n---\n${WAYFINDING_RULES}` : ""
+          }\n\n---\n${context}`,
           messages: await convertToModelMessages(messages),
           abortSignal: request.signal,
         });

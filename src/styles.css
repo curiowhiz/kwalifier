@@ -207,6 +207,21 @@
 }
 
 
+/* Digits for the wayfinding page's running text. Atkinson Hyperlegible Next
+   draws zero with a dot inside, which reads oddly in prose ("70%"), so
+   digits come from Public Sans (self-hosted, OFL) everywhere except offer
+   IDs, which keep the dotted zero via .wf-id. */
+@font-face {
+  font-family: "WF Plain Digits";
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("/fonts/public-sans-latin.woff2") format("woff2");
+  unicode-range: U+0030-0039;
+  /* Public Sans figures sit a little taller than Atkinson's; match their height. */
+  size-adjust: 94%;
+}
+
 /*
  * Wayfinding design (src/routes/v2.tsx and src/components/v2/ only).
  * Everything is scoped under .wf, so the classic page cannot pick any of it up.
@@ -246,7 +261,7 @@
   --input: var(--wf-rule);
   --ring: var(--wf-amber);
 
-  font-family: "Atkinson Hyperlegible Next", "Atkinson Hyperlegible", ui-sans-serif, system-ui, sans-serif;
+  font-family: "WF Plain Digits", "Atkinson Hyperlegible Next", "Atkinson Hyperlegible", ui-sans-serif, system-ui, sans-serif;
   background: var(--wf-ground);
   color: var(--wf-ink);
   caret-color: var(--wf-line);
@@ -278,6 +293,12 @@ html:has(.wf) body {
 }
 
 .wf-tnum {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Offer IDs keep Atkinson's dotted zero, where telling 0 from O matters. */
+.wf-id {
+  font-family: "Atkinson Hyperlegible Next", "Atkinson Hyperlegible", ui-sans-serif, system-ui, sans-serif;
   font-variant-numeric: tabular-nums;
 }
 

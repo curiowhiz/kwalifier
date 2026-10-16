@@ -80,7 +80,7 @@ function WayfindingPage() {
     if (!trimmed || busy) return;
     setLastQuery(trimmed);
     setInput("");
-    void sendMessage({ text: trimmed }, { body: { profileId } });
+    void sendMessage({ text: trimmed }, { body: { profileId, design: "wayfinding" } });
   };
 
   const switchProfile = (id: string) => {

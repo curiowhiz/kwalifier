@@ -123,7 +123,7 @@ function Branch({ verdict, index }: { verdict: Verdict; index: number }) {
           <StationPlate name={verdict.name} status={verdict.status} />
           <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
             <StatusText status={verdict.status} />
-            <span className="wf-tnum text-xs text-[var(--wf-ink-soft)]">{verdict.offer_id}</span>
+            <span className="wf-id text-xs text-[var(--wf-ink-soft)]">{verdict.offer_id}</span>
           </div>
         </div>
         <div className="md:pt-2.5">
@@ -188,7 +188,7 @@ export function RouteLine({
                   <StationPlate name={v.name} status={v.status} small as="p" />
                   <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
                     <StatusText status={v.status} />
-                    <span className="wf-tnum text-xs text-[var(--wf-ink-soft)]">{v.offer_id}</span>
+                    <span className="wf-id text-xs text-[var(--wf-ink-soft)]">{v.offer_id}</span>
                   </div>
                   <StopDetails verdict={v} />
                 </div>
