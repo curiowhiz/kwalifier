@@ -12,7 +12,7 @@ import { z } from "zod/v4";
 
 import { MessageResponse } from "@/components/ai-elements/message";
 import { splitOpenUI } from "@/components/genui-message";
-import { StatusText, StopDetails } from "@/components/v2/route-line";
+import { StationPlate, StatusText, StopDetails, stopAnchor } from "@/components/v2/route-line";
 import { computeVerdicts, type Verdict } from "@/lib/eligibility";
 import type { CustomerProfile } from "@/lib/kwalifier-data";
 import { cn } from "@/lib/utils";
@@ -42,22 +42,29 @@ function OfferSign({ offerId }: { offerId: string }) {
       </div>
     );
   }
-  return (
-    <div className={cn(panel, "grid grid-cols-[1.5rem_1fr] gap-x-3")}>
-      <span
-        aria-hidden
-        className={cn(
-          "wf-stop__dot !m-0 !mt-0.5",
-          verdict.status === "near_miss" && "wf-stop__dot--near",
-          verdict.status === "ineligible" && "wf-stop__dot--off",
-        )}
-      />
-      <div className="min-w-0 space-y-1.5">
-        <h3 className="text-base font-bold leading-snug">{verdict.name}</h3>
-        <p className="wf-tnum text-xs text-[var(--wf-ink-soft)]">{verdict.offer_id}</p>
-        <StatusText status={verdict.status} />
-        <StopDetails verdict={verdict} />
+  if (verdict.status === "eligible") {
+    // Already on the snapshot map above: name it and point back instead of repeating it.
+    return (
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+        <StationPlate name={verdict.name} status="eligible" small as="p" />
+        <StatusText status="eligible" />
+        <a
+          href={`#${stopAnchor(verdict.offer_id)}`}
+          className="text-sm font-bold text-[var(--wf-line)] underline decoration-2 underline-offset-4 hover:text-[var(--wf-line-deep)]"
+        >
+          See it on your line
+        </a>
       </div>
+    );
+  }
+  return (
+    <div className={cn(panel, "space-y-2")}>
+      <StationPlate name={verdict.name} status={verdict.status} small as="p" />
+      <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+        <StatusText status={verdict.status} />
+        <span className="wf-tnum text-xs text-[var(--wf-ink-soft)]">{verdict.offer_id}</span>
+      </div>
+      <StopDetails verdict={verdict} />
     </div>
   );
 }
@@ -102,7 +109,7 @@ function JourneyPlanner({ profile, verdict }: { profile: CustomerProfile; verdic
 
       {/* The journey: from where you are to this offer's stop, re-drawn as the value moves. */}
       <div className="grid grid-cols-[1.5rem_1fr_1.5rem] items-center gap-x-2" aria-hidden>
-        <span className="wf-stop__dot wf-stop__dot--here !m-0" />
+        <span className="wf-dot wf-dot--here" />
         <span
           className={cn(
             "h-0 border-t-[6px] transition-colors",
@@ -113,14 +120,14 @@ function JourneyPlanner({ profile, verdict }: { profile: CustomerProfile; verdic
         />
         <span
           className={cn(
-            "wf-stop__dot !m-0",
-            status === "near_miss" && "wf-stop__dot--near",
-            status === "ineligible" && "wf-stop__dot--off",
+            "wf-dot",
+            status === "near_miss" && "wf-dot--near",
+            status === "ineligible" && "wf-dot--off",
           )}
         />
       </div>
-      <div className="flex items-center gap-2" aria-live="polite">
-        <span className="mr-auto text-sm font-bold">{verdict.name}</span>
+      <div className="flex flex-wrap items-center justify-between gap-2" aria-live="polite">
+        <StationPlate name={verdict.name} status={status} small as="p" />
         <StatusText status={status} />
       </div>
       {others.map(({ verdict: other }) => (

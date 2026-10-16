@@ -6,11 +6,14 @@ import type { CustomerProfile } from "@/lib/kwalifier-data";
 import { cn } from "@/lib/utils";
 
 /** Status words used everywhere on the wayfinding page. */
-export const STATUS_LABEL: Record<Verdict["status"], string> = {
+const STATUS_LABEL: Record<Verdict["status"], string> = {
   eligible: "Eligible",
   near_miss: "1 stop away",
   ineligible: "Not eligible",
 };
+
+/** Id of an offer's stop on the snapshot map, so chat answers can point back to it. */
+export const stopAnchor = (offerId: string) => `wf-stop-${offerId}`;
 
 export function StatusText({ status }: { status: Verdict["status"] }) {
   return (
@@ -25,6 +28,32 @@ export function StatusText({ status }: { status: Verdict["status"] }) {
       {status === "eligible" ? <Check className="size-4" strokeWidth={3} aria-hidden /> : null}
       {STATUS_LABEL[status]}
     </span>
+  );
+}
+
+/** An offer's name set on a plate in its route colour, the way a stop is named on a sign. */
+export function StationPlate({
+  name,
+  status,
+  small = false,
+  as: Tag = "h3",
+}: {
+  name: string;
+  status: Verdict["status"];
+  small?: boolean;
+  as?: "h3" | "p";
+}) {
+  return (
+    <Tag
+      className={cn(
+        "wf-plate",
+        status === "near_miss" && "wf-plate--near",
+        status === "ineligible" && "wf-plate--off",
+        small && "wf-plate--small",
+      )}
+    >
+      {name}
+    </Tag>
   );
 }
 
@@ -79,39 +108,36 @@ export function StopDetails({ verdict }: { verdict: Verdict }) {
   );
 }
 
-function Stop({
-  verdict,
-  index,
-  next,
-}: {
-  verdict: Verdict;
-  index: number;
-  next: Verdict | undefined;
-}) {
+function Branch({ verdict, index }: { verdict: Verdict; index: number }) {
   const near = verdict.status === "near_miss";
   return (
-    <li className="wf-stop" style={{ "--i": index } as React.CSSProperties}>
-      {next ? (
-        <span
-          aria-hidden
-          className={cn("wf-stop__seg", next.status === "near_miss" && "wf-stop__seg--approach")}
-        />
-      ) : null}
-      <span aria-hidden className={cn("wf-stop__dot", near && "wf-stop__dot--near")} />
-      <div className="wf-stop__body space-y-1.5">
-        <h3 className="text-lg font-bold leading-snug">{verdict.name}</h3>
-        <p className="wf-tnum text-xs text-[var(--wf-ink-soft)]">{verdict.offer_id}</p>
-        <StatusText status={verdict.status} />
-        <StopDetails verdict={verdict} />
+    <li
+      id={stopAnchor(verdict.offer_id)}
+      className="wf-node scroll-mt-6"
+      style={{ "--i": index } as React.CSSProperties}
+    >
+      <span aria-hidden className={cn("wf-node__branch", near && "wf-node__branch--approach")} />
+      <span aria-hidden className={cn("wf-dot", near && "wf-dot--near")} />
+      <div className="grid gap-x-8 gap-y-2 md:grid-cols-[minmax(0,20rem)_minmax(0,1fr)]">
+        <div className="space-y-2">
+          <StationPlate name={verdict.name} status={verdict.status} />
+          <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+            <StatusText status={verdict.status} />
+            <span className="wf-tnum text-xs text-[var(--wf-ink-soft)]">{verdict.offer_id}</span>
+          </div>
+        </div>
+        <div className="md:pt-2.5">
+          <StopDetails verdict={verdict} />
+        </div>
       </div>
     </li>
   );
 }
 
 /**
- * The customer's offers drawn as one route: where they are now, the offers
- * already reached (eligible), then the offers one move away (near miss).
- * Every status comes from the rules engine's verdicts.
+ * The customer's offers drawn as a small network: a "You are here" hub, then
+ * one branch per offer. Offers already reached (eligible) come first, then the
+ * offers one move away (near miss). Every status comes from the rules engine.
  */
 export function RouteLine({
   profile,
@@ -129,40 +155,41 @@ export function RouteLine({
   const offLine = verdicts.filter((v) => v.status === "ineligible");
 
   return (
-    <div className="space-y-8">
-      <ol className="wf-route" aria-label={`Offers on ${profile.name}'s line`}>
-        <li className="wf-stop" style={{ "--i": 0 } as React.CSSProperties}>
-          {onLine[0] ? (
-            <span
-              aria-hidden
-              className={cn(
-                "wf-stop__seg",
-                onLine[0].status === "near_miss" && "wf-stop__seg--approach",
-              )}
-            />
-          ) : null}
-          <span aria-hidden className="wf-stop__dot wf-stop__dot--here" />
-          <div className="wf-stop__body space-y-1">
-            <h3 className="text-lg font-bold leading-snug">You are here</h3>
+    <div className="flex flex-col gap-8">
+      <ul
+        className={cn("wf-net", onLine.length === 0 && "wf-net--solo")}
+        aria-label={`Offers on ${profile.name}'s line`}
+      >
+        <li className="wf-node wf-node--hub" style={{ "--i": 0 } as React.CSSProperties}>
+          <span aria-hidden className="wf-dot wf-dot--here" />
+          <div className="flex min-h-[2.7rem] flex-wrap items-baseline gap-x-3 pt-2">
+            <p className="text-lg font-extrabold leading-tight">You are here</p>
             <p className="text-sm text-[var(--wf-ink-soft)]">{profile.name}</p>
           </div>
         </li>
         {onLine.map((v, i) => (
-          <Stop key={v.offer_id} verdict={v} index={i + 1} next={onLine[i + 1]} />
+          <Branch key={v.offer_id} verdict={v} index={i + 1} />
         ))}
-      </ol>
+      </ul>
 
       {showIneligible && offLine.length > 0 ? (
         <div className="space-y-4 border-t border-[var(--wf-rule)] pt-6">
           <h3 className="text-base font-bold">Not on your line</h3>
-          <ul className="grid gap-5 sm:grid-cols-2">
-            {offLine.map((v) => (
-              <li key={v.offer_id} className="grid grid-cols-[2rem_1fr] gap-x-3">
-                <span aria-hidden className="wf-stop__dot wf-stop__dot--off !m-0 !mt-0.5" />
-                <div className="space-y-1.5">
-                  <p className="font-bold leading-snug">{v.name}</p>
-                  <p className="wf-tnum text-xs text-[var(--wf-ink-soft)]">{v.offer_id}</p>
-                  <StatusText status={v.status} />
+          <ul className="wf-net wf-net--off grid gap-5 sm:grid-cols-2">
+            {offLine.map((v, i) => (
+              <li
+                key={v.offer_id}
+                id={stopAnchor(v.offer_id)}
+                className="wf-node !pb-0"
+                style={{ "--i": i } as React.CSSProperties}
+              >
+                <span aria-hidden className="wf-dot wf-dot--off" />
+                <div className="space-y-2">
+                  <StationPlate name={v.name} status={v.status} small as="p" />
+                  <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                    <StatusText status={v.status} />
+                    <span className="wf-tnum text-xs text-[var(--wf-ink-soft)]">{v.offer_id}</span>
+                  </div>
                   <StopDetails verdict={v} />
                 </div>
               </li>
