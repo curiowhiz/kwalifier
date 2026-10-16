@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -126,6 +126,14 @@ function KwalifierPage() {
             Your card offers, explained clearly
           </p>
         </div>
+        <nav aria-label="Site versions">
+          <Link
+            to="/v2"
+            className="text-xs text-foreground underline underline-offset-4 hover:text-primary"
+          >
+            New design
+          </Link>
+        </nav>
         <Select value={profileId} onValueChange={switchProfile}>
           <SelectTrigger className="on-parchment w-[168px] bg-card text-card-foreground">
             <SelectValue />
