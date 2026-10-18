@@ -2,7 +2,6 @@
  * Wayfinding design of the chat page (route network, station plates).
  * The default design served at `/`; also reachable at /v2.
  */
-import { Link } from "@tanstack/react-router";
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -84,14 +83,6 @@ export function WayfindingPage() {
             <h1 className="text-2xl font-extrabold leading-tight">Kwalifier</h1>
             <p className="text-sm text-white/85">Your card offers, explained clearly</p>
           </div>
-          <nav aria-label="Site versions" className="order-last w-full sm:order-none sm:w-auto">
-            <Link
-              to="/classic"
-              className="text-sm font-bold text-white underline decoration-white/60 decoration-2 underline-offset-4 hover:decoration-white"
-            >
-              Classic design
-            </Link>
-          </nav>
           <select
             aria-label="Signed-in customer"
             value={profileId}
