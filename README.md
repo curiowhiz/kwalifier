@@ -86,7 +86,7 @@ The chat page has two designs. Both share the same chat endpoint, rules engine, 
 | :--- | :--- |
 | `/` | The default design, set in `src/pages/designs.ts` (currently the wayfinding design) |
 | `/v2` | Wayfinding design: route network, station plates, route green and signal amber |
-| `/classic` | Classic design: navy and parchment, kept as a backup of the original page |
+| `/classic` | Classic design: navy and parchment, kept as a backup of the original page. Nothing on the site links to it; open the address directly |
 
 **Rolling back:** in `src/pages/designs.ts`, change `DEFAULT_DESIGN` from `"wayfinding"` to `"classic"` and deploy. `/v2` and `/classic` keep serving their own designs either way.
 
